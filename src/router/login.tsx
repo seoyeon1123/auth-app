@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 interface ILoginData {
   email: string;
@@ -14,31 +15,47 @@ const Login = () => {
     handleSubmit,
     formState: { errors },
   } = useForm<ILoginData>();
-  const [message, setMessage] = useState('');
+
+  const [message, setMessage] = useState<string>('');
+  const navigate = useNavigate();
 
   const onSubmitLogin = async (data: ILoginData) => {
     try {
-      const response = await axios.post('http://localhost:3000/login', {
-        email: data.email,
-        password: data.password,
-      });
+      const response = await axios.post(
+        'http://localhost:3000/login',
+        {
+          email: data.email,
+          password: data.password,
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          },
+        }
+      );
 
-      console.log('서버 응답:', response);
-
-      // 서버 응답에서 토큰 추출
-      const token = response.data.token;
+      const { token } = response.data;
 
       if (token) {
-        localStorage.setItem('token', token);
-        console.log('토큰 저장 완료:', token);
+        sessionStorage.setItem('token', token);
         setMessage('로그인 성공!');
+        navigate('/home');
       } else {
         console.error('토큰이 없습니다.');
         setMessage('로그인 실패. 다시 시도하세요.');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('로그인 요청 실패:', error);
-      setMessage('로그인 실패. 다시 시도하세요.');
+      if (error.response) {
+        console.error('응답 데이터:', error.response.data);
+        console.error('응답 상태 코드:', error.response.status);
+        if (error.response.status === 401) {
+          setMessage('인증에 실패했습니다. 다시 로그인하세요.');
+        } else {
+          setMessage('로그인 실패. 다시 시도하세요.');
+        }
+      }
     }
   };
 
