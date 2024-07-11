@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useForm } from 'react-hook-form';
+import { Link, useNavigate } from 'react-router-dom';
 
 interface IData {
   name: string;
@@ -10,10 +11,12 @@ interface IData {
 }
 
 const Signup = () => {
+  const navigate = useNavigate();
   const [message, setMessage] = useState('');
   const [verificationSent, setVerificationSent] = useState(false);
   const [email, setEmail] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
+  const [signUpSuccess, setSignUpSuccess] = useState(false);
 
   const {
     register,
@@ -31,8 +34,13 @@ const Signup = () => {
       });
       console.log('Registration successful:', response.data);
       setMessage('회원가입 성공!');
+      setSignUpSuccess(true);
       reset();
       setVerificationSent(false);
+
+      setTimeout(() => {
+        navigate('/login');
+      }, 2000);
     } catch (error) {
       console.error('Registration failed:', error);
       setMessage('회원가입 실패. 다시 시도하세요.');
