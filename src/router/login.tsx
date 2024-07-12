@@ -1,10 +1,92 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { loginUser } from '../utils/apiUtils';
+import styled from 'styled-components';
 
-interface ILoginData {
+const Container = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background-color: #111;
+  color: white;
+`;
+
+const Logo = styled.img`
+  width: 200px;
+  margin-bottom: 30px;
+`;
+
+const LoginForm = styled.form`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #333;
+  width: 400px;
+  height: 400px;
+  padding: 40px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+`;
+
+const InputContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20px;
+  width: 100%;
+`;
+
+const InputField = styled.input`
+  padding: 12px;
+  margin: 8px 0;
+  border: none;
+  border-radius: 4px;
+  background-color: #222;
+  color: white;
+  font-size: 16px;
+  ::placeholder {
+    color: #aaa;
+  }
+
+  &:focus {
+    outline: none;
+  }
+`;
+
+const ButtonContainer = styled.div`
+  width: 100%;
+`;
+
+const Button = styled.button`
+  padding: 8px 0;
+  margin-top: 10px;
+  border: none;
+  border-radius: 4px;
+  background-color: #e50914;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  width: 100%;
+  &:hover {
+    background-color: #ff3e46;
+  }
+`;
+
+const SignUpMessage = styled.p`
+  text-align: end;
+  margin-top: 20px;
+  font-size: 15px;
+`;
+
+const Message = styled.p`
+  margin-top: 10px;
+`;
+
+export interface ILoginData {
   email: string;
   password: string;
 }
@@ -21,29 +103,13 @@ const Login = () => {
 
   const onSubmitLogin = async (data: ILoginData) => {
     try {
-      const response = await axios.post(
-        'http://localhost:3000/login',
-        {
-          email: data.email,
-          password: data.password,
-        },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
-          },
-        }
-      );
+      const userId = await loginUser(data);
+      setMessage('로그인 성공!');
 
-      const { token } = response.data;
-
-      if (token) {
-        sessionStorage.setItem('token', token);
-        setMessage('로그인 성공!');
-        navigate('/home');
-      } else {
-        console.error('토큰이 없습니다.');
-        setMessage('로그인 실패. 다시 시도하세요.');
+      // Redirect to home with userId
+      if (userId) {
+        const redirectUrl = `http://localhost:3001/home?id=${userId}`;
+        window.location.href = redirectUrl;
       }
     } catch (error: any) {
       console.error('로그인 요청 실패:', error);
@@ -60,15 +126,14 @@ const Login = () => {
   };
 
   return (
-    <div>
-      <h1>로그인</h1>
-      <form onSubmit={handleSubmit(onSubmitLogin)}>
-        <div>
-          <label htmlFor="email">이메일:</label>
-          <input
+    <Container>
+      <Logo src="/path/to/your/logo.png" alt="Logo" />
+      <LoginForm onSubmit={handleSubmit(onSubmitLogin)}>
+        <InputContainer>
+          <InputField
             id="email"
             type="email"
-            placeholder="이메일을 입력하세요"
+            placeholder="이메일"
             {...register('email', {
               required: '이메일을 입력하세요',
               pattern: {
@@ -77,14 +142,13 @@ const Login = () => {
               },
             })}
           />
-          {errors.email && <p>{errors.email.message}</p>}
-        </div>
-        <div>
-          <label htmlFor="password">비밀번호:</label>
-          <input
+          {errors.email && <Message>{errors.email.message}</Message>}
+        </InputContainer>
+        <InputContainer>
+          <InputField
             id="password"
             type="password"
-            placeholder="비밀번호를 입력하세요"
+            placeholder="비밀번호"
             {...register('password', {
               required: '비밀번호를 입력하세요',
               minLength: {
@@ -93,15 +157,19 @@ const Login = () => {
               },
             })}
           />
-          {errors.password && <p>{errors.password.message}</p>}
-        </div>
-        <button type="submit">로그인</button>
-      </form>
-      <Link to="/signup">
-        <button type="button">회원가입</button>
-      </Link>
-      {message && <p>{message}</p>}
-    </div>
+          {errors.password && <Message>{errors.password.message}</Message>}
+        </InputContainer>
+        <ButtonContainer>
+          <Button type="submit">로그인</Button>
+          <SignUpMessage>회원이 아니신가요?</SignUpMessage>
+          <Link to="/signup">
+            <Button>회원가입</Button>
+          </Link>
+        </ButtonContainer>
+      </LoginForm>
+
+      {message && <Message>{message}</Message>}
+    </Container>
   );
 };
 
