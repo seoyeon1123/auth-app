@@ -3,6 +3,19 @@ import axios from 'axios';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
 
+import {
+  Container,
+  Logo,
+  Title,
+  LoginForm,
+  InputContainer,
+  InputField,
+  Button,
+  AuthContainer,
+  ButtonAuth,
+  Message,
+} from './loginCss';
+
 interface IData {
   name: string;
   email: string;
@@ -16,7 +29,7 @@ const Signup = () => {
   const [verificationSent, setVerificationSent] = useState(false);
   const [email, setEmail] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
-  const [signUpSuccess, setSignUpSuccess] = useState(false);
+  const [isVerified, setIsVerified] = useState(false); // 인증 완료 상태 변수
 
   const {
     register,
@@ -26,6 +39,11 @@ const Signup = () => {
   } = useForm<IData>();
 
   const onSubmit = async (data: IData) => {
+    if (!isVerified) {
+      setMessage('이메일 인증을 완료해주세요.');
+      return;
+    }
+
     try {
       const response = await axios.post('http://localhost:3000/user', {
         name: data.name,
@@ -34,9 +52,9 @@ const Signup = () => {
       });
       console.log('Registration successful:', response.data);
       setMessage('회원가입 성공!');
-      setSignUpSuccess(true);
       reset();
       setVerificationSent(false);
+      setIsVerified(false);
 
       setTimeout(() => {
         navigate('/login');
@@ -51,9 +69,7 @@ const Signup = () => {
     try {
       const response = await axios.post(
         'http://localhost:3000/sendVerification',
-        {
-          email: email,
-        }
+        { email }
       );
       console.log('Verification code sent:', response.data);
       setMessage('인증번호가 이메일로 전송되었습니다.');
@@ -67,24 +83,25 @@ const Signup = () => {
   const verifyCodeauth = async () => {
     try {
       const response = await axios.post('http://localhost:3000/verifyCode', {
-        email: email,
+        email,
         code: verificationCode,
       });
-      console.log('Verification code sent:', response.data);
+      console.log('Verification successful:', response.data);
       setMessage('인증이 완료되었습니다.');
+      setIsVerified(true); // 인증 완료로 상태 설정
     } catch (error) {
-      console.error('Failed to auth verification code:', error);
+      console.error('Failed to verify code:', error);
       setMessage('인증번호가 틀립니다.');
     }
   };
 
   return (
-    <div>
-      <h2>회원가입</h2>
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <div>
-          <label htmlFor="name">이름:</label>
-          <input
+    <Container>
+      <Logo src="/path/to/your/logo.png" alt="Logo" />
+      <LoginForm onSubmit={handleSubmit(onSubmit)}>
+        <Title>회원가입</Title>
+        <InputContainer>
+          <InputField
             type="text"
             id="name"
             placeholder="이름을 입력하세요"
@@ -96,11 +113,10 @@ const Signup = () => {
               },
             })}
           />
-          {errors.name && <p>{errors.name.message}</p>}
-        </div>
-        <div>
-          <label htmlFor="email">이메일:</label>
-          <input
+          {errors.name && <Message>{errors.name.message}</Message>}
+        </InputContainer>
+        <InputContainer>
+          <InputField
             type="email"
             id="email"
             placeholder="이메일을 입력하세요"
@@ -113,33 +129,10 @@ const Signup = () => {
             })}
             onChange={(e) => setEmail(e.target.value)}
           />
-          {errors.email && <p>{errors.email.message}</p>}
-        </div>
-        {verificationSent ? (
-          <div>
-            <label htmlFor="verificationCode">인증번호:</label>
-            <input
-              type="text"
-              id="verificationCode"
-              placeholder="인증번호를 입력하세요"
-              {...register('verificationCode', {
-                required: '인증번호를 입력하세요',
-              })}
-              onChange={(e) => setVerificationCode(e.target.value)}
-            />
-            <button onClick={verifyCodeauth}> 인증 하기 </button>
-            {errors.verificationCode && (
-              <p>{errors.verificationCode.message}</p>
-            )}
-          </div>
-        ) : (
-          <button type="button" onClick={sendVerificationCode}>
-            인증번호 전송
-          </button>
-        )}
-        <div>
-          <label htmlFor="password">비밀번호:</label>
-          <input
+          {errors.email && <Message>{errors.email.message}</Message>}
+        </InputContainer>
+        <InputContainer>
+          <InputField
             type="password"
             id="password"
             placeholder="비밀번호를 입력하세요"
@@ -151,12 +144,35 @@ const Signup = () => {
               },
             })}
           />
-          {errors.password && <p>{errors.password.message}</p>}
-        </div>
-        <button type="submit">회원가입</button>
-      </form>
-      {message && <p>{message}</p>}
-    </div>
+          {errors.password && <Message>{errors.password.message}</Message>}
+        </InputContainer>
+        {verificationSent ? (
+          <AuthContainer>
+            <InputField
+              type="text"
+              id="verificationCode"
+              placeholder="인증번호를 입력하세요"
+              {...register('verificationCode', {
+                required: '인증번호를 입력하세요',
+              })}
+              onChange={(e) => setVerificationCode(e.target.value)}
+            />
+            <ButtonAuth type="button" onClick={verifyCodeauth}>
+              인증 하기
+            </ButtonAuth>
+            {errors.verificationCode && (
+              <Message>{errors.verificationCode.message}</Message>
+            )}
+          </AuthContainer>
+        ) : (
+          <ButtonAuth type="button" onClick={sendVerificationCode}>
+            인증번호 전송
+          </ButtonAuth>
+        )}
+        <Button type="submit">회원가입</Button>
+      </LoginForm>
+      {message && <Message>{message}</Message>}
+    </Container>
   );
 };
 

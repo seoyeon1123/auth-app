@@ -4,87 +4,18 @@ import { useForm } from 'react-hook-form';
 import { loginUser } from '../utils/apiUtils';
 import styled from 'styled-components';
 
-const Container = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
-  background-color: #111;
-  color: white;
-`;
-
-const Logo = styled.img`
-  width: 200px;
-  margin-bottom: 30px;
-`;
-
-const LoginForm = styled.form`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background-color: #333;
-  width: 400px;
-  height: 400px;
-  padding: 40px;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-`;
-
-const InputContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 20px;
-  width: 100%;
-`;
-
-const InputField = styled.input`
-  padding: 12px;
-  margin: 8px 0;
-  border: none;
-  border-radius: 4px;
-  background-color: #222;
-  color: white;
-  font-size: 16px;
-  ::placeholder {
-    color: #aaa;
-  }
-
-  &:focus {
-    outline: none;
-  }
-`;
-
-const ButtonContainer = styled.div`
-  width: 100%;
-`;
-
-const Button = styled.button`
-  padding: 8px 0;
-  margin-top: 10px;
-  border: none;
-  border-radius: 4px;
-  background-color: #e50914;
-  color: white;
-  font-size: 16px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-  width: 100%;
-  &:hover {
-    background-color: #ff3e46;
-  }
-`;
-
-const SignUpMessage = styled.p`
-  text-align: end;
-  margin-top: 20px;
-  font-size: 15px;
-`;
-
-const Message = styled.p`
-  margin-top: 10px;
-`;
+import {
+  Container,
+  Logo,
+  Title,
+  LoginForm,
+  InputContainer,
+  InputField,
+  ButtonContainer,
+  Button,
+  SignUpMessage,
+  Message,
+} from './loginCss';
 
 export interface ILoginData {
   email: string;
@@ -129,6 +60,7 @@ const Login = () => {
     <Container>
       <Logo src="/path/to/your/logo.png" alt="Logo" />
       <LoginForm onSubmit={handleSubmit(onSubmitLogin)}>
+        <Title>Login</Title>
         <InputContainer>
           <InputField
             id="email"
